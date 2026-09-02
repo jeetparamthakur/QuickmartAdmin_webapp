@@ -1,0 +1,135 @@
+import type { AdminRole } from "@/lib/types";
+
+export const PERMISSIONS = {
+  "dashboard.view": "View dashboard",
+  "orders.view": "View orders",
+  "orders.manage": "Manage orders",
+  "customers.view": "View customers",
+  "customers.view_pii": "View customer PII",
+  "customers.manage": "Manage customers",
+  "stores.view": "View stores",
+  "stores.manage": "Manage stores",
+  "stores.suspend": "Suspend stores",
+  "sellers.view": "View independent sellers",
+  "sellers.manage": "Manage independent sellers",
+  "products.view": "View products",
+  "products.manage": "Manage products",
+  "categories.manage": "Manage categories",
+  "delivery.view": "View delivery partners",
+  "delivery.manage": "Manage delivery partners",
+  "delivery.live_map": "View live map",
+  "finance.view": "View finance",
+  "finance.approve_payout": "Approve payouts",
+  "charges.manage": "Manage charges",
+  "commission.manage": "Manage commission",
+  "marketing.banners": "Manage banners",
+  "marketing.ads": "Manage advertisements",
+  "marketing.offers": "Manage offers",
+  "analytics.view": "View analytics",
+  "reports.export": "Export reports",
+  "settings.manage": "Manage settings",
+  "admin.users": "Manage admin users",
+  "admin.roles": "Manage roles",
+  "audit.view": "View audit logs",
+  "notifications.view": "View notifications",
+} as const;
+
+export type Permission = keyof typeof PERMISSIONS;
+
+export const ROLE_PERMISSIONS: Record<AdminRole, Permission[]> = {
+  SUPER_ADMIN: Object.keys(PERMISSIONS) as Permission[],
+  OPERATIONS_MANAGER: [
+    "dashboard.view",
+    "orders.view",
+    "orders.manage",
+    "customers.view",
+    "customers.manage",
+    "stores.view",
+    "stores.manage",
+    "sellers.view",
+    "sellers.manage",
+    "delivery.view",
+    "delivery.manage",
+    "delivery.live_map",
+    "analytics.view",
+    "notifications.view",
+    "audit.view",
+  ],
+  SELLER_MANAGER: [
+    "dashboard.view",
+    "stores.view",
+    "stores.manage",
+    "stores.suspend",
+    "sellers.view",
+    "sellers.manage",
+    "products.view",
+    "products.manage",
+    "categories.manage",
+    "analytics.view",
+    "notifications.view",
+    "audit.view",
+  ],
+  DELIVERY_MANAGER: [
+    "dashboard.view",
+    "orders.view",
+    "delivery.view",
+    "delivery.manage",
+    "delivery.live_map",
+    "analytics.view",
+    "notifications.view",
+    "audit.view",
+  ],
+  FINANCE_MANAGER: [
+    "dashboard.view",
+    "finance.view",
+    "finance.approve_payout",
+    "charges.manage",
+    "commission.manage",
+    "analytics.view",
+    "reports.export",
+    "audit.view",
+  ],
+  SUPPORT_AGENT: [
+    "dashboard.view",
+    "orders.view",
+    "customers.view",
+    "customers.view_pii",
+    "stores.view",
+    "sellers.view",
+    "notifications.view",
+  ],
+  CATALOG_MANAGER: [
+    "dashboard.view",
+    "products.view",
+    "products.manage",
+    "categories.manage",
+    "analytics.view",
+  ],
+  MARKETING_MANAGER: [
+    "dashboard.view",
+    "marketing.banners",
+    "marketing.ads",
+    "marketing.offers",
+    "analytics.view",
+    "reports.export",
+  ],
+};
+
+export const ROLE_LABELS: Record<AdminRole, string> = {
+  SUPER_ADMIN: "Super Admin",
+  OPERATIONS_MANAGER: "Operations Manager",
+  SELLER_MANAGER: "Seller Manager",
+  DELIVERY_MANAGER: "Delivery Manager",
+  FINANCE_MANAGER: "Finance Manager",
+  SUPPORT_AGENT: "Support Agent",
+  CATALOG_MANAGER: "Catalog Manager",
+  MARKETING_MANAGER: "Marketing Manager",
+};
+
+export function hasPermission(role: AdminRole, permission: Permission): boolean {
+  return ROLE_PERMISSIONS[role]?.includes(permission) ?? false;
+}
+
+export function getPermissionsForRole(role: AdminRole): Permission[] {
+  return ROLE_PERMISSIONS[role] ?? [];
+}
