@@ -14,12 +14,8 @@ import { useAuth } from "@/lib/auth/context";
 import { formatDateTime } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-
-const PARTNER_TYPE_LABELS: Record<string, string> = {
-  STORE: "Store Partner",
-  INDEPENDENT_SELLER: "Independent Seller",
-  DELIVERY_PARTNER: "Delivery Partner",
-};
+import { FoodSetupPanel } from "@/components/admin/food-setup-panel";
+import { PARTNER_TYPE_LABELS } from "@/lib/constants/partnerTypes";
 
 const DOCUMENT_LABELS: Record<string, string> = {
   pan: "PAN Card",
@@ -171,16 +167,20 @@ export default function RequestDetailPage() {
       content: renderDetails(request.sellerSetup),
     },
     {
+      value: "food",
+      label: "Food Setup",
+      content: <FoodSetupPanel foodSetup={request.foodSetup} />,
+    },
+    {
       value: "bank",
       label: "Bank Details",
       content: renderDetails(request.bankDetails),
     },
   ].filter((tab) => {
-    if (tab.value === "store" && request.partnerType === "INDEPENDENT_SELLER") return false;
+    if (tab.value === "store" && request.partnerType !== "STORE") return false;
     if (tab.value === "seller" && request.partnerType !== "INDEPENDENT_SELLER") return false;
-    if (tab.value === "store" && request.partnerType === "DELIVERY_PARTNER") return false;
+    if (tab.value === "food" && request.partnerType !== "FOOD_STORE") return false;
     if (tab.value === "business" && request.partnerType === "DELIVERY_PARTNER") return false;
-    if (tab.value === "seller" && request.partnerType === "DELIVERY_PARTNER") return false;
     if (tab.value === "bank" && request.partnerType === "DELIVERY_PARTNER") return false;
     return true;
   });

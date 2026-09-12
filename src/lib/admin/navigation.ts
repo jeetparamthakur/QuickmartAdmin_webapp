@@ -18,6 +18,7 @@ import {
   Settings,
   ScrollText,
   ClipboardList,
+  UtensilsCrossed,
 } from "lucide-react";
 
 export interface NavItem {
@@ -99,6 +100,13 @@ export const adminNavGroups: NavGroup[] = [
         icon: Store,
         permission: "stores.view",
         description: "Merchants running physical storefronts",
+      },
+      {
+        title: "Restaurants",
+        href: "/admin/restaurants",
+        icon: UtensilsCrossed,
+        permission: "stores.view",
+        description: "Food partners running restaurants and menus",
       },
       {
         title: "Independent Sellers",

@@ -16,6 +16,7 @@ import {
   mapProduct,
   mapSeller,
   mapStore,
+  mapRestaurant,
   mapCommissionRule,
   mapChargeRule,
   type ApiCommissionRule,
@@ -86,7 +87,10 @@ export const repositories = {
   stores: {
     getAll: async (filters?: ListFilters) => {
       const raw = (await adminApi.stores()) as ApiStore[];
-      return paginate(raw.map(mapStore), filters);
+      const stores = raw
+        .map(mapStore)
+        .filter((store) => store.partnerType !== "FOOD_STORE");
+      return paginate(stores, filters);
     },
     getById: async (id: string) => findById(() => repositories.stores.getAll({ pageSize: 500 }), id),
     update: async (
@@ -99,6 +103,26 @@ export const repositories = {
         await adminApi.updateStoreStatus(id, data.status as string);
       }
       return repositories.stores.getById(id);
+    },
+  },
+  restaurants: {
+    getAll: async (filters?: ListFilters) => {
+      const raw = (await adminApi.restaurants()) as ApiStore[];
+      const restaurants = raw.map(mapRestaurant);
+      return paginate(restaurants, filters);
+    },
+    getById: async (id: string) =>
+      findById(() => repositories.restaurants.getAll({ pageSize: 500 }), id),
+    update: async (
+      id: string,
+      data: Record<string, unknown>,
+      ...args: unknown[]
+    ) => {
+      void args;
+      if (data.status) {
+        await adminApi.updateStoreStatus(id, data.status as string);
+      }
+      return repositories.restaurants.getById(id);
     },
   },
   customers: {
@@ -201,7 +225,13 @@ export const repositories = {
   dashboard: {
     getStats: async () => {
       const overview = (await adminApi.dashboard()) as ApiOverview;
-      return mapOverviewToDashboardStats(overview);
+      const stats = mapOverviewToDashboardStats(overview);
+      const restaurants = await repositories.restaurants.getAll({ pageSize: 500 });
+      return {
+        ...stats,
+        totalRestaurants: restaurants.total,
+        activeRestaurants: restaurants.data.filter((r) => r.status === "ACTIVE").length,
+      };
     },
     getFinanceStats: async () => {
       const summary = (await adminApi.finance()) as {

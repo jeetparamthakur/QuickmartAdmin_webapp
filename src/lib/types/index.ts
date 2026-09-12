@@ -47,6 +47,7 @@ export type PartnerRequestType = "KYC_ONBOARDING" | "DELIVERY_PARTNER";
 export type PartnerRequestPartnerType =
   | "STORE"
   | "INDEPENDENT_SELLER"
+  | "FOOD_STORE"
   | "DELIVERY_PARTNER";
 
 export type PartnerRequestStatus =
@@ -81,8 +82,38 @@ export interface PartnerRequest {
   businessDetails?: Record<string, unknown>;
   storeDetails?: Record<string, unknown>;
   sellerSetup?: Record<string, unknown>;
+  foodSetup?: FoodSetup;
   bankDetails?: Record<string, unknown>;
   preference?: string;
+}
+
+export interface FoodItem {
+  id?: string;
+  name: string;
+  price: number;
+  description?: string;
+  isVeg: boolean;
+  prepTimeMinutes: number;
+  imageUrl?: string;
+}
+
+export interface FoodSetup {
+  name: string;
+  description?: string;
+  cuisine?: string;
+  fssaiNumber?: string;
+  address: string;
+  city: string;
+  area: string;
+  pincode: string;
+  latitude?: number;
+  longitude?: number;
+  openingTime: string;
+  closingTime: string;
+  is24Hours: boolean;
+  deliveryRadius: number;
+  contactNumber: string;
+  items?: FoodItem[];
 }
 
 export type ChargeType = "FIXED" | "PERCENTAGE" | "FORMULA";
@@ -162,6 +193,7 @@ export interface Store {
   ownerName: string;
   ownerPhone: string;
   ownerEmail: string;
+  partnerType?: "STORE" | "FOOD_STORE";
   categoryId: string;
   categoryName: string;
   businessType: string;
@@ -179,6 +211,32 @@ export interface Store {
   rating: number;
   deliveryRadius: number;
   timings: string;
+  features: FeatureAccess;
+}
+
+export interface Restaurant {
+  id: string;
+  userId: string;
+  name: string;
+  ownerName: string;
+  ownerPhone: string;
+  ownerEmail: string;
+  cuisine?: string;
+  address: Address;
+  registrationDate: string;
+  status: AccountStatus;
+  isOpen: boolean;
+  totalMenuItems: number;
+  todayOrders: number;
+  totalOrders: number;
+  todaySales: number;
+  totalSales: number;
+  platformCommission: number;
+  commissionOverride?: number;
+  rating: number;
+  deliveryRadius: number;
+  timings: string;
+  foodSetup?: FoodSetup;
   features: FeatureAccess;
 }
 
@@ -544,6 +602,8 @@ export interface DashboardStats {
   totalStores: number;
   activeStores: number;
   closedStores: number;
+  totalRestaurants: number;
+  activeRestaurants: number;
   totalIndependentSellers: number;
   totalDeliveryPartners: number;
   onlineDeliveryPartners: number;

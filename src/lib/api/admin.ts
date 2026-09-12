@@ -29,6 +29,7 @@ export const authApi = {
 export const adminApi = {
   dashboard: () => apiRequest("/dashboard/overview"),
   stores: () => apiRequest("/admin/stores"),
+  restaurants: () => apiRequest("/admin/restaurants"),
   updateStoreStatus: (id: string, status: string) =>
     apiRequest(`/admin/stores/${id}/status`, { method: "PATCH", body: { status } }),
   customers: () => apiRequest("/admin/customers"),

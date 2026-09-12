@@ -15,6 +15,7 @@ import {
   ArrowRight,
   Settings,
   Banknote,
+  UtensilsCrossed,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -38,6 +39,16 @@ const PARTNER_METRICS = [
     accentClass: "bg-emerald-50 text-emerald-600 ring-emerald-100",
     getValue: (stats: Awaited<ReturnType<typeof repositories.dashboard.getStats>>) =>
       stats.totalStores,
+  },
+  {
+    key: "restaurants",
+    title: "Restaurants",
+    description: "Food partners on the platform",
+    href: "/admin/restaurants",
+    icon: UtensilsCrossed,
+    accentClass: "bg-orange-50 text-orange-600 ring-orange-100",
+    getValue: (stats: Awaited<ReturnType<typeof repositories.dashboard.getStats>>) =>
+      stats.totalRestaurants,
   },
   {
     key: "independentSellers",
@@ -64,7 +75,7 @@ const PARTNER_METRICS = [
 const QUICK_ACTIONS = [
   {
     title: "Review applications",
-    description: "Approve new store owners, sellers, and delivery partners",
+    description: "Approve new store owners, restaurants, sellers, and delivery partners",
     href: "/admin/requests?status=pending",
     icon: ClipboardList,
   },

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { type ColumnDef } from "@tanstack/react-table";
 import { repositories } from "@/lib/repositories";
 import type { PartnerRequest, PartnerRequestPartnerType } from "@/lib/types";
+import { PARTNER_TYPE_LABELS } from "@/lib/constants/partnerTypes";
 import { DataTable } from "@/components/admin/data-table";
 import { StatusBadge } from "@/components/admin/status-badge";
 import { Breadcrumbs } from "@/components/admin/breadcrumbs";
@@ -13,12 +14,6 @@ import { PageHeader } from "@/components/admin/page-header";
 import { formatDateTime } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-
-const PARTNER_TYPE_LABELS: Record<string, string> = {
-  STORE: "Store Owner",
-  INDEPENDENT_SELLER: "Independent Seller",
-  DELIVERY_PARTNER: "Delivery Partner",
-};
 
 const columns: ColumnDef<PartnerRequest>[] = [
   { accessorKey: "name", header: "Applicant" },
@@ -56,6 +51,7 @@ const STATUS_TABS = [
 const TYPE_FILTERS: Array<{ value: "all" | PartnerRequestPartnerType; label: string }> = [
   { value: "all", label: "All Types" },
   { value: "STORE", label: "Store Owners" },
+  { value: "FOOD_STORE", label: "Restaurants" },
   { value: "INDEPENDENT_SELLER", label: "Independent Sellers" },
   { value: "DELIVERY_PARTNER", label: "Delivery Partners" },
 ];
@@ -89,7 +85,7 @@ export default function RequestsPage() {
       <Breadcrumbs items={[{ label: "Applications" }]} />
       <PageHeader
         title="Partner Applications"
-        description={`Review onboarding for store owners, independent sellers, and delivery partners. ${pendingCount} awaiting review.`}
+        description={`Review onboarding for store owners, restaurants, independent sellers, and delivery partners. ${pendingCount} awaiting review.`}
       >
         <div className="flex flex-wrap gap-1">
           {TYPE_FILTERS.map((filter) => (

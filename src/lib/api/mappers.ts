@@ -18,7 +18,9 @@ import type {
   Payout,
   PartnerRequest,
   Product,
+  Restaurant,
   Store,
+  FoodSetup,
 } from "@/lib/types";
 
 type ApiUser = {
@@ -35,7 +37,15 @@ type ApiStore = {
   lng?: string | null;
   status: string;
   createdAt: string;
-  storeOwner?: { fullName?: string; user?: ApiUser };
+  details?: Record<string, unknown> | null;
+  serviceRadiusKm?: string | null;
+  storeOwner?: {
+    userId?: string;
+    fullName?: string;
+    partnerType?: string;
+    foodSetup?: Record<string, unknown> | null;
+    user?: ApiUser;
+  };
 };
 
 type ApiCustomer = {
@@ -254,18 +264,85 @@ const defaultFeatures = {
   staffManagement: true,
 };
 
+function readNumeric(value: unknown): number | undefined {
+  if (typeof value === "number" || typeof value === "string") {
+    const parsed = toNumber(value);
+    return Number.isFinite(parsed) ? parsed : undefined;
+  }
+  return undefined;
+}
+
+function readFoodSetup(raw?: Record<string, unknown> | null): FoodSetup | undefined {
+  if (!raw || typeof raw !== "object") return undefined;
+  const items = Array.isArray(raw.items)
+    ? raw.items
+        .filter((item): item is Record<string, unknown> => !!item && typeof item === "object")
+        .map((item) => ({
+          id: typeof item.id === "string" ? item.id : undefined,
+          name: String(item.name ?? ""),
+          price: readNumeric(item.price) ?? 0,
+          description: typeof item.description === "string" ? item.description : undefined,
+          isVeg: item.isVeg === true,
+          prepTimeMinutes: readNumeric(item.prepTimeMinutes) ?? 15,
+          imageUrl: typeof item.imageUrl === "string" ? item.imageUrl : undefined,
+        }))
+        .filter((item) => item.name)
+    : undefined;
+
+  if (!raw.name && !raw.address) return undefined;
+
+  return {
+    name: String(raw.name ?? ""),
+    description: typeof raw.description === "string" ? raw.description : undefined,
+    cuisine: typeof raw.cuisine === "string" ? raw.cuisine : undefined,
+    fssaiNumber: typeof raw.fssaiNumber === "string" ? raw.fssaiNumber : undefined,
+    address: String(raw.address ?? ""),
+    city: String(raw.city ?? ""),
+    area: String(raw.area ?? ""),
+    pincode: String(raw.pincode ?? ""),
+    latitude: readNumeric(raw.latitude),
+    longitude: readNumeric(raw.longitude),
+    openingTime: String(raw.openingTime ?? ""),
+    closingTime: String(raw.closingTime ?? ""),
+    is24Hours: raw.is24Hours === true,
+    deliveryRadius: readNumeric(raw.deliveryRadius) ?? 5,
+    contactNumber: String(raw.contactNumber ?? ""),
+    items,
+  };
+}
+
+function formatFoodTimings(foodSetup?: FoodSetup) {
+  if (!foodSetup) return "—";
+  if (foodSetup.is24Hours) return "Open 24 hours";
+  if (foodSetup.openingTime && foodSetup.closingTime) {
+    return `${foodSetup.openingTime} – ${foodSetup.closingTime}`;
+  }
+  return "—";
+}
+
 export function mapStore(raw: ApiStore): Store {
   const owner = raw.storeOwner;
+  const partnerType = owner?.partnerType === "FOOD_STORE" ? "FOOD_STORE" : "STORE";
+  const foodSetup = readFoodSetup(owner?.foodSetup);
+  const details = (raw.details ?? foodSetup) as Record<string, unknown> | undefined;
+  const city =
+    foodSetup?.city ??
+    (typeof details?.city === "string" ? details.city : undefined);
+
   return {
     id: raw.id,
     name: raw.name,
     ownerName: owner?.fullName ?? "—",
     ownerPhone: owner?.user?.phone ?? "—",
     ownerEmail: owner?.user?.email ?? "—",
+    partnerType,
     categoryId: "",
-    categoryName: "—",
-    businessType: "—",
-    address: toAddress(raw.address, raw.lat, raw.lng),
+    categoryName: partnerType === "FOOD_STORE" ? "Food" : "—",
+    businessType: partnerType === "FOOD_STORE" ? "Restaurant" : "—",
+    address: {
+      ...toAddress(raw.address, raw.lat, raw.lng),
+      city: city ?? toAddress(raw.address, raw.lat, raw.lng).city,
+    },
     registrationDate: raw.createdAt,
     status: toAccountStatus(raw.status),
     isOpen: raw.status === "ACTIVE",
@@ -276,8 +353,49 @@ export function mapStore(raw: ApiStore): Store {
     totalSales: 0,
     platformCommission: 0,
     rating: 0,
-    deliveryRadius: 5,
-    timings: "—",
+    deliveryRadius: toNumber(raw.serviceRadiusKm) || foodSetup?.deliveryRadius || 5,
+    timings: formatFoodTimings(foodSetup),
+    features: defaultFeatures,
+  };
+}
+
+export function mapRestaurant(raw: ApiStore): Restaurant {
+  const owner = raw.storeOwner;
+  const foodSetup = readFoodSetup(owner?.foodSetup ?? (raw.details as Record<string, unknown> | null));
+  const address = foodSetup
+    ? {
+        line1: foodSetup.address,
+        city: foodSetup.city,
+        area: foodSetup.area,
+        pincode: foodSetup.pincode,
+        state: "",
+        lat: foodSetup.latitude ?? toNumber(raw.lat),
+        lng: foodSetup.longitude ?? toNumber(raw.lng),
+      }
+    : toAddress(raw.address, raw.lat, raw.lng);
+
+  return {
+    id: raw.id,
+    userId: owner?.userId ?? "",
+    name: raw.name,
+    ownerName: owner?.fullName ?? "—",
+    ownerPhone: owner?.user?.phone ?? "—",
+    ownerEmail: owner?.user?.email ?? "—",
+    cuisine: foodSetup?.cuisine,
+    address,
+    registrationDate: raw.createdAt,
+    status: toAccountStatus(raw.status),
+    isOpen: raw.status === "ACTIVE",
+    totalMenuItems: foodSetup?.items?.length ?? 0,
+    todayOrders: 0,
+    totalOrders: 0,
+    todaySales: 0,
+    totalSales: 0,
+    platformCommission: 0,
+    rating: 0,
+    deliveryRadius: toNumber(raw.serviceRadiusKm) || foodSetup?.deliveryRadius || 5,
+    timings: formatFoodTimings(foodSetup),
+    foodSetup,
     features: defaultFeatures,
   };
 }
@@ -505,6 +623,8 @@ export function mapOverviewToDashboardStats(overview: ApiOverview): DashboardSta
     totalStores: storeTotal,
     activeStores: overview.stores.active,
     closedStores: overview.stores.inactive,
+    totalRestaurants: 0,
+    activeRestaurants: 0,
     totalIndependentSellers: sellerTotal,
     totalDeliveryPartners: overview.delivery.totalPartners,
     onlineDeliveryPartners: overview.delivery.onlinePartners,
@@ -614,7 +734,7 @@ export function mapCommissionRule(rule: ApiCommissionRule): import("@/lib/types"
 type ApiPartnerRequest = {
   userId: string;
   requestType: "KYC_ONBOARDING" | "DELIVERY_PARTNER";
-  partnerType: "STORE" | "INDEPENDENT_SELLER" | "DELIVERY_PARTNER";
+  partnerType: "STORE" | "INDEPENDENT_SELLER" | "FOOD_STORE" | "DELIVERY_PARTNER";
   name: string;
   phone?: string;
   email?: string;
@@ -630,6 +750,7 @@ type ApiPartnerRequest = {
   businessDetails?: Record<string, unknown>;
   storeDetails?: Record<string, unknown>;
   sellerSetup?: Record<string, unknown>;
+  foodSetup?: Record<string, unknown>;
   bankDetails?: Record<string, unknown>;
   preference?: string;
 };
@@ -654,6 +775,7 @@ export function mapPartnerRequest(raw: ApiPartnerRequest): PartnerRequest {
     businessDetails: raw.businessDetails,
     storeDetails: raw.storeDetails,
     sellerSetup: raw.sellerSetup,
+    foodSetup: readFoodSetup(raw.foodSetup),
     bankDetails: raw.bankDetails,
     preference: raw.preference,
   };

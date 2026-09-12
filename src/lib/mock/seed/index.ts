@@ -723,6 +723,8 @@ function computeDashboardStats(stores: Store[], sellers: IndependentSeller[], cu
     totalStores: stores.length,
     activeStores: stores.filter((s) => s.status === "ACTIVE").length,
     closedStores: stores.filter((s) => !s.isOpen).length,
+    totalRestaurants: 0,
+    activeRestaurants: 0,
     totalIndependentSellers: sellers.length,
     totalDeliveryPartners: partners.length,
     onlineDeliveryPartners: partners.filter((p) => p.isOnline).length,

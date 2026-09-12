@@ -4,9 +4,10 @@ import type { SearchResult } from "@/lib/types";
 let cachedIndex: SearchResult[] | null = null;
 
 async function buildSearchIndex(): Promise<SearchResult[]> {
-  const [customers, stores, sellers, partners, orders, products] = await Promise.all([
+  const [customers, stores, restaurants, sellers, partners, orders, products] = await Promise.all([
     repositories.customers.getAll({ pageSize: 100 }),
     repositories.stores.getAll({ pageSize: 100 }),
+    repositories.restaurants.getAll({ pageSize: 100 }),
     repositories.sellers.getAll({ pageSize: 100 }),
     repositories.partners.getAll({ pageSize: 100 }),
     repositories.orders.getAll({ pageSize: 100 }),
@@ -32,6 +33,16 @@ async function buildSearchIndex(): Promise<SearchResult[]> {
       title: s.name,
       subtitle: `${s.ownerName} · ${s.address.city}`,
       href: `/admin/stores/${s.id}`,
+    });
+  });
+
+  restaurants.data.forEach((r) => {
+    results.push({
+      id: r.id,
+      type: "Restaurant",
+      title: r.name,
+      subtitle: `${r.ownerName} · ${r.address.city}`,
+      href: `/admin/restaurants/${r.id}`,
     });
   });
 
