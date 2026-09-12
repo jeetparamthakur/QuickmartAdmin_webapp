@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { repositories } from "@/lib/repositories";
 import { Breadcrumbs } from "@/components/admin/breadcrumbs";
+import { PageHeader } from "@/components/admin/page-header";
 import { formatDateTime } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 
@@ -11,13 +12,20 @@ const severityVariant: Record<string, "default" | "secondary" | "destructive" | 
 };
 
 export default function NotificationsPage() {
-  const { data: notifications } = useQuery({ queryKey: ["notifications"], queryFn: () => repositories.dashboard.getNotifications() });
+  const { data: notifications = [], isLoading } = useQuery({
+    queryKey: ["notifications"],
+    queryFn: () => repositories.dashboard.getNotifications(),
+  });
   return (
     <div>
       <Breadcrumbs items={[{ label: "Notifications" }]} />
-      <h1 className="mb-4 text-2xl font-bold">Admin Notifications & Alerts</h1>
+      <PageHeader title="Admin Notifications & Alerts" />
       <div className="space-y-3">
-        {notifications?.map((n) => (
+        {isLoading ? (
+          <p className="py-12 text-center text-sm text-muted-foreground">Loading...</p>
+        ) : notifications.length === 0 ? (
+          <p className="py-12 text-center text-sm text-muted-foreground">No data found.</p>
+        ) : notifications.map((n) => (
           <div key={n.id} className={`rounded-lg border p-4 ${!n.read ? "border-primary/30 bg-primary/5" : ""}`}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">

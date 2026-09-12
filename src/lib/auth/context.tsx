@@ -33,14 +33,13 @@ function readStoredUser(): AdminUser | null {
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AdminUser | null>(() => readStoredUser());
   const [permissions, setPermissions] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() =>
+    typeof window !== "undefined" && Boolean(getStoredToken()),
+  );
 
   useEffect(() => {
     const token = getStoredToken();
-    if (!token) {
-      setLoading(false);
-      return;
-    }
+    if (!token) return;
     authApi
       .me()
       .then((res) => {

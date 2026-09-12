@@ -1,10 +1,21 @@
-import { seedData } from "@/lib/mock/seed";
+import { repositories } from "@/lib/repositories";
 import type { SearchResult } from "@/lib/types";
 
-export function buildSearchIndex(): SearchResult[] {
+let cachedIndex: SearchResult[] | null = null;
+
+async function buildSearchIndex(): Promise<SearchResult[]> {
+  const [customers, stores, sellers, partners, orders, products] = await Promise.all([
+    repositories.customers.getAll({ pageSize: 100 }),
+    repositories.stores.getAll({ pageSize: 100 }),
+    repositories.sellers.getAll({ pageSize: 100 }),
+    repositories.partners.getAll({ pageSize: 100 }),
+    repositories.orders.getAll({ pageSize: 100 }),
+    repositories.products.getAll({ pageSize: 100 }),
+  ]);
+
   const results: SearchResult[] = [];
 
-  seedData.customers.forEach((c) => {
+  customers.data.forEach((c) => {
     results.push({
       id: c.id,
       type: "Customer",
@@ -14,17 +25,17 @@ export function buildSearchIndex(): SearchResult[] {
     });
   });
 
-  seedData.stores.forEach((s) => {
+  stores.data.forEach((s) => {
     results.push({
       id: s.id,
-      type: "Store",
+      type: "Store Owner",
       title: s.name,
       subtitle: `${s.ownerName} · ${s.address.city}`,
       href: `/admin/stores/${s.id}`,
     });
   });
 
-  seedData.sellers.forEach((s) => {
+  sellers.data.forEach((s) => {
     results.push({
       id: s.id,
       type: "Independent Seller",
@@ -34,7 +45,7 @@ export function buildSearchIndex(): SearchResult[] {
     });
   });
 
-  seedData.partners.forEach((p) => {
+  partners.data.forEach((p) => {
     results.push({
       id: p.id,
       type: "Delivery Partner",
@@ -44,7 +55,7 @@ export function buildSearchIndex(): SearchResult[] {
     });
   });
 
-  seedData.products.forEach((p) => {
+  products.data.forEach((p) => {
     results.push({
       id: p.id,
       type: "Product",
@@ -54,28 +65,40 @@ export function buildSearchIndex(): SearchResult[] {
     });
   });
 
-  seedData.orders.forEach((o) => {
+  orders.data.forEach((o) => {
     results.push({
       id: o.id,
       type: "Order",
       title: o.id,
       subtitle: `${o.customerName} · ${o.status}`,
-      href: `/admin/orders/${o.id}`,
+      href: `/admin/orders/${o.parentOrderId ?? o.id}`,
     });
   });
 
   return results;
 }
 
-export function searchAll(query: string): SearchResult[] {
+export async function searchAll(query: string): Promise<SearchResult[]> {
   if (!query.trim()) return [];
+  if (!cachedIndex) {
+    try {
+      cachedIndex = await buildSearchIndex();
+    } catch {
+      return [];
+    }
+  }
+
   const q = query.toLowerCase();
-  return buildSearchIndex()
+  return cachedIndex
     .filter(
       (r) =>
         r.title.toLowerCase().includes(q) ||
         r.subtitle.toLowerCase().includes(q) ||
-        r.id.toLowerCase().includes(q)
+        r.id.toLowerCase().includes(q),
     )
     .slice(0, 20);
+}
+
+export function clearSearchCache() {
+  cachedIndex = null;
 }

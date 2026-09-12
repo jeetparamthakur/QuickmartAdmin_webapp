@@ -23,6 +23,7 @@ import type {
   IndependentSeller,
   Notification,
   Order,
+  OrderItem,
   OrderStatus,
   Payout,
   PlatformEvent,
@@ -274,7 +275,29 @@ const ORDER_STATUSES: OrderStatus[] = [
   "CANCELLED", "REFUNDED", "FAILED",
 ];
 
-function generateOrders(stores: Store[], sellers: IndependentSeller[], customers: Customer[], partners: DeliveryPartner[]): Order[] {
+function toOrderItem(product: Product, quantity?: number): OrderItem {
+  const qty = quantity ?? randomInt(1, 3);
+  return {
+    productId: product.id,
+    productName: product.name,
+    quantity: qty,
+    price: product.price,
+  };
+}
+
+function pickVendorProducts(products: Product[], vendorId: string, vendorKey: "storeId" | "sellerId", count: number): Product[] {
+  const pool = products.filter((product) => product[vendorKey] === vendorId);
+  if (pool.length === 0) return products.slice(0, count);
+  return Array.from({ length: count }, (_, index) => pool[index % pool.length]);
+}
+
+function generateOrders(
+  stores: Store[],
+  sellers: IndependentSeller[],
+  customers: Customer[],
+  partners: DeliveryPartner[],
+  products: Product[],
+): Order[] {
   const orders: Order[] = [];
 
   for (let i = 0; i < 520; i++) {
@@ -295,8 +318,10 @@ function generateOrders(stores: Store[], sellers: IndependentSeller[], customers
       const store = stores[i % stores.length];
       const seller = sellers[i % sellers.length];
       const parentId = `order-${i + 1}`;
-      const sub1Total = Math.round(subtotal * 0.6);
-      const sub2Total = subtotal - sub1Total;
+      const storeItems = pickVendorProducts(products, store.id, "storeId", 2).map((product) => toOrderItem(product));
+      const sellerItems = pickVendorProducts(products, seller.id, "sellerId", 1).map((product) => toOrderItem(product));
+      const sub1Total = storeItems.reduce((sum, item) => sum + item.quantity * item.price, 0);
+      const sub2Total = sellerItems.reduce((sum, item) => sum + item.quantity * item.price, 0);
 
       orders.push({
         id: parentId,
@@ -323,7 +348,7 @@ function generateOrders(stores: Store[], sellers: IndependentSeller[], customers
             parentOrderId: parentId,
             storeId: store.id,
             storeName: store.name,
-            items: [{ productId: "p1", productName: "Rice 1kg", quantity: 2, price: 80 }],
+            items: storeItems,
             status,
             subtotal: sub1Total,
           },
@@ -332,7 +357,7 @@ function generateOrders(stores: Store[], sellers: IndependentSeller[], customers
             parentOrderId: parentId,
             sellerId: seller.id,
             sellerName: seller.businessName,
-            items: [{ productId: "p2", productName: "Handmade Craft", quantity: 1, price: sub2Total }],
+            items: sellerItems,
             status,
             subtotal: sub2Total,
           },
@@ -343,6 +368,11 @@ function generateOrders(stores: Store[], sellers: IndependentSeller[], customers
       const store = useStore ? stores[i % stores.length] : undefined;
       const seller = !useStore ? sellers[i % sellers.length] : undefined;
       const partner = partners[i % partners.length];
+      const vendorId = store?.id ?? seller?.id;
+      const vendorKey = store ? "storeId" : "sellerId";
+      const orderItems = vendorId
+        ? pickVendorProducts(products, vendorId, vendorKey, randomInt(1, 3)).map((product) => toOrderItem(product))
+        : [toOrderItem(products[i % products.length])];
 
       orders.push({
         id: `order-${i + 1}`,
@@ -359,7 +389,7 @@ function generateOrders(stores: Store[], sellers: IndependentSeller[], customers
         cityName: city.name,
         status,
         paymentStatus: status === "FAILED" ? "FAILED" : status === "REFUNDED" ? "REFUNDED" : "SUCCESS",
-        items: [{ productId: "p1", productName: "Product Item", quantity: randomInt(1, 5), price: randomInt(50, 500) }],
+        items: orderItems,
         subtotal,
         discount,
         deliveryFee,
@@ -444,13 +474,14 @@ function generatePayouts(stores: Store[], sellers: IndependentSeller[], partners
 }
 
 function generateCharges(): ChargeRule[] {
+  const now = new Date().toISOString();
   return [
-    { id: "charge-1", name: "Platform Fee", type: "FIXED", value: 5, applicability: "All Orders", conditions: "None", effectiveFrom: "2024-01-01", enabled: true, visibleInCart: true, visibleInCheckout: true, visibleInInvoice: true },
-    { id: "charge-2", name: "Handling Fee", type: "FIXED", value: 10, applicability: "Grocery Orders", conditions: "Category = Grocery", minCartValue: 100, effectiveFrom: "2024-01-01", enabled: true, visibleInCart: true, visibleInCheckout: true, visibleInInvoice: true },
-    { id: "charge-3", name: "Small Order Fee", type: "FIXED", value: 20, applicability: "Orders below ₹200", conditions: "Cart Total < ₹200", maxCharge: 20, effectiveFrom: "2024-06-01", enabled: true, visibleInCart: false, visibleInCheckout: true, visibleInInvoice: true },
-    { id: "charge-4", name: "Peak Hour Fee", type: "FIXED", value: 10, applicability: "7 PM - 10 PM", conditions: "Time Between 7 PM - 10 PM", effectiveFrom: "2024-01-01", enabled: true, visibleInCart: true, visibleInCheckout: true, visibleInInvoice: true },
-    { id: "charge-5", name: "Convenience Fee", type: "PERCENTAGE", value: 2, applicability: "All Orders", conditions: "Minimum Cart ₹100", minCartValue: 100, maxCharge: 50, effectiveFrom: "2024-01-01", enabled: true, visibleInCart: true, visibleInCheckout: true, visibleInInvoice: true },
-    { id: "charge-6", name: "Packaging Fee", type: "FIXED", value: 8, applicability: "Restaurant Orders", conditions: "Category = Restaurant", effectiveFrom: "2024-01-01", enabled: true, visibleInCart: true, visibleInCheckout: true, visibleInInvoice: true },
+    { id: "charge-1", code: "PLATFORM_FEE", name: "Platform Fee", type: "FIXED", value: 5, conditions: {}, priority: 1, isActive: true, createdAt: now },
+    { id: "charge-2", code: "HANDLING_FEE", name: "Handling Fee", type: "FIXED", value: 10, conditions: { minCartValue: 100 }, priority: 2, isActive: true, createdAt: now },
+    { id: "charge-3", code: "SMALL_ORDER_FEE", name: "Small Order Fee", type: "FIXED", value: 20, conditions: { maxCartTotal: 200 }, priority: 3, isActive: true, createdAt: now },
+    { id: "charge-4", code: "PEAK_HOUR_FEE", name: "Peak Hour Fee", type: "FIXED", value: 10, conditions: {}, priority: 4, isActive: true, createdAt: now },
+    { id: "charge-5", code: "CONVENIENCE_FEE", name: "Convenience Fee", type: "PERCENTAGE", value: 2, conditions: { minCartValue: 100 }, priority: 5, isActive: true, createdAt: now },
+    { id: "charge-6", code: "PACKAGING_FEE", name: "Packaging Fee", type: "FIXED", value: 8, conditions: {}, priority: 6, isActive: true, createdAt: now },
   ];
 }
 
@@ -502,16 +533,12 @@ function generateBanners(): Banner[] {
   return Array.from({ length: 8 }, (_, i) => ({
     id: `banner-${i + 1}`,
     title: `Promo Banner ${i + 1}`,
-    mobileImageUrl: `/banners/mobile-${i + 1}.jpg`,
-    webImageUrl: `/banners/web-${i + 1}.jpg`,
-    position: randomFrom(["HOME_TOP", "HOME_MIDDLE", "CATEGORY_TOP"]),
-    startDate: "2025-09-01",
-    endDate: "2025-10-31",
-    enabled: i < 6,
-    redirectType: randomFrom(["PRODUCT", "STORE", "CATEGORY", "CAMPAIGN"] as const),
-    redirectTarget: `target-${i + 1}`,
-    impressions: randomInt(1000, 50000),
-    clicks: randomInt(50, 5000),
+    imageUrl: `https://picsum.photos/seed/banner-${i + 1}/800/300`,
+    linkUrl: i % 2 === 0 ? `/category/cat-${i + 1}` : undefined,
+    placement: randomFrom(["HOME_TOP", "HOME_MIDDLE", "CATEGORY"] as const),
+    sortOrder: i,
+    isActive: i < 6,
+    createdAt: "2025-09-01T00:00:00.000Z",
   }));
 }
 
@@ -536,10 +563,71 @@ function generateAds(): Advertisement[] {
 
 function generateCoupons(): Coupon[] {
   return [
-    { id: "coupon-1", code: "WELCOME50", type: "FLAT", value: 50, minCart: 299, usageLimit: 1000, usedCount: 342, perCustomerLimit: 1, startDate: "2025-01-01", endDate: "2025-12-31", enabled: true },
-    { id: "coupon-2", code: "SAVE10", type: "PERCENTAGE", value: 10, minCart: 500, maxDiscount: 100, usageLimit: 5000, usedCount: 1200, perCustomerLimit: 3, startDate: "2025-01-01", endDate: "2025-12-31", enabled: true },
-    { id: "coupon-3", code: "FREEDEL", type: "FREE_DELIVERY", value: 0, minCart: 399, usageLimit: 2000, usedCount: 890, perCustomerLimit: 2, startDate: "2025-06-01", endDate: "2025-12-31", enabled: true },
-    { id: "coupon-4", code: "FIRST100", type: "FIRST_ORDER", value: 100, minCart: 199, usageLimit: 10000, usedCount: 4500, perCustomerLimit: 1, startDate: "2025-01-01", endDate: "2025-12-31", enabled: true },
+    {
+      id: "coupon-1",
+      code: "WELCOME50",
+      name: "Welcome ₹50 Off",
+      type: "FIXED",
+      value: 50,
+      minCart: 299,
+      usageLimit: 1000,
+      usedCount: 342,
+      perCustomerLimit: 1,
+      scopeType: "GLOBAL",
+      fundingSource: "PLATFORM",
+      startDate: "2025-01-01",
+      endDate: "2025-12-31",
+      enabled: true,
+    },
+    {
+      id: "coupon-2",
+      code: "SAVE10",
+      name: "Save 10%",
+      type: "PERCENTAGE",
+      value: 10,
+      minCart: 500,
+      maxDiscount: 100,
+      usageLimit: 5000,
+      usedCount: 1200,
+      perCustomerLimit: 3,
+      scopeType: "GLOBAL",
+      fundingSource: "PLATFORM",
+      startDate: "2025-01-01",
+      endDate: "2025-12-31",
+      enabled: true,
+    },
+    {
+      id: "coupon-3",
+      code: "FREEDEL",
+      name: "Free Delivery",
+      type: "FIXED",
+      value: 0,
+      minCart: 399,
+      usageLimit: 2000,
+      usedCount: 890,
+      perCustomerLimit: 2,
+      scopeType: "GLOBAL",
+      fundingSource: "PLATFORM",
+      startDate: "2025-06-01",
+      endDate: "2025-12-31",
+      enabled: true,
+    },
+    {
+      id: "coupon-4",
+      code: "FIRST100",
+      name: "First Order ₹100 Off",
+      type: "FIXED",
+      value: 100,
+      minCart: 199,
+      usageLimit: 10000,
+      usedCount: 4500,
+      perCustomerLimit: 1,
+      scopeType: "GLOBAL",
+      fundingSource: "PLATFORM",
+      startDate: "2025-01-01",
+      endDate: "2025-12-31",
+      enabled: true,
+    },
   ];
 }
 
@@ -720,7 +808,7 @@ const sellers = generateSellers();
 const customers = generateCustomers();
 const partners = generatePartners();
 const products = generateProducts(stores, sellers);
-const orders = generateOrders(stores, sellers, customers, partners);
+const orders = generateOrders(stores, sellers, customers, partners, products);
 const carts = generateCarts(customers);
 const payouts = generatePayouts(stores, sellers, partners);
 const adminUsers = generateAdminUsers();

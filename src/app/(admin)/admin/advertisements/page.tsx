@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { repositories } from "@/lib/repositories";
 import { Breadcrumbs } from "@/components/admin/breadcrumbs";
+import { PageHeader } from "@/components/admin/page-header";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/utils";
@@ -12,7 +13,7 @@ export default function AdvertisementsPage() {
   return (
     <div>
       <Breadcrumbs items={[{ label: "Advertisements" }]} />
-      <h1 className="mb-4 text-2xl font-bold">Advertisement Control Center</h1>
+      <PageHeader title="Advertisement Control Center" />
       <div className="space-y-3">
         {ads?.map((ad) => (
           <div key={ad.id} className="flex items-center justify-between rounded-lg border p-4">

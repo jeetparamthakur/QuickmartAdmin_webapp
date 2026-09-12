@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { repositories } from "@/lib/repositories";
 import { Breadcrumbs } from "@/components/admin/breadcrumbs";
+import { PageHeader } from "@/components/admin/page-header";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,7 +17,10 @@ export default function SettingsPage() {
   return (
     <div>
       <Breadcrumbs items={[{ label: "Settings" }]} />
-      <h1 className="mb-4 text-2xl font-bold">System Settings</h1>
+      <PageHeader
+        title="Platform Settings"
+        description="Configure your SaaS marketplace — branding, fees, defaults, and feature flags."
+      />
       <Tabs defaultValue="general">
         <TabsList>
           <TabsTrigger value="general">General</TabsTrigger>

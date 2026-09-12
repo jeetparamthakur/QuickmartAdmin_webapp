@@ -7,6 +7,7 @@ import type { Payout } from "@/lib/types";
 import { DataTable } from "@/components/admin/data-table";
 import { StatusBadge } from "@/components/admin/status-badge";
 import { Breadcrumbs } from "@/components/admin/breadcrumbs";
+import { PageHeader } from "@/components/admin/page-header";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth/context";
@@ -37,7 +38,10 @@ const columns = (onAction: (id: string, status: string) => void, canApprove: boo
 export default function PayoutsPage() {
   const { user, can } = useAuth();
   const qc = useQueryClient();
-  const { data } = useQuery({ queryKey: ["payouts"], queryFn: () => repositories.payouts.getAll({ pageSize: 100 }) });
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["payouts"],
+    queryFn: () => repositories.payouts.getAll({ pageSize: 100 }),
+  });
   const payouts = data?.data ?? [];
 
   const handleAction = async (id: string, status: string) => {
@@ -53,17 +57,30 @@ export default function PayoutsPage() {
   return (
     <div>
       <Breadcrumbs items={[{ label: "Payouts" }]} />
-      <h1 className="mb-4 text-2xl font-bold">Payout Management</h1>
+      <PageHeader
+        title="Payouts"
+        description="Release earnings to store owners, independent sellers, and delivery partners on your platform."
+      />
       <Tabs defaultValue="seller">
         <TabsList>
-          <TabsTrigger value="seller">Seller Payouts ({sellerPayouts.length})</TabsTrigger>
-          <TabsTrigger value="partner">Partner Payouts ({partnerPayouts.length})</TabsTrigger>
+          <TabsTrigger value="seller">Store Owners & Sellers ({sellerPayouts.length})</TabsTrigger>
+          <TabsTrigger value="partner">Delivery Partners ({partnerPayouts.length})</TabsTrigger>
         </TabsList>
         <TabsContent value="seller">
-          <DataTable columns={columns(handleAction, can("finance.approve_payout"))} data={sellerPayouts} />
+          <DataTable
+            columns={columns(handleAction, can("finance.approve_payout"))}
+            data={sellerPayouts}
+            isLoading={isLoading}
+            errorMessage={isError ? "Failed to load payouts. Check your connection and try again." : undefined}
+          />
         </TabsContent>
         <TabsContent value="partner">
-          <DataTable columns={columns(handleAction, can("finance.approve_payout"))} data={partnerPayouts} />
+          <DataTable
+            columns={columns(handleAction, can("finance.approve_payout"))}
+            data={partnerPayouts}
+            isLoading={isLoading}
+            errorMessage={isError ? "Failed to load payouts. Check your connection and try again." : undefined}
+          />
         </TabsContent>
       </Tabs>
     </div>

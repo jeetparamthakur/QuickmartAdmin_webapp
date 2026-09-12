@@ -3,6 +3,7 @@
 import { PERMISSIONS, ROLE_PERMISSIONS, ROLE_LABELS } from "@/lib/permissions/matrix";
 import type { AdminRole } from "@/lib/types";
 import { Breadcrumbs } from "@/components/admin/breadcrumbs";
+import { PageHeader } from "@/components/admin/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Check, X } from "lucide-react";
 
@@ -13,7 +14,7 @@ export default function RolesPage() {
   return (
     <div>
       <Breadcrumbs items={[{ label: "Admin Users", href: "/admin/admin-users" }, { label: "Roles & Permissions" }]} />
-      <h1 className="mb-4 text-2xl font-bold">Roles & Permissions Matrix</h1>
+      <PageHeader title="Roles & Permissions Matrix" />
       <div className="overflow-x-auto rounded-lg border">
         <table className="w-full text-sm">
           <thead className="border-b bg-muted/50">

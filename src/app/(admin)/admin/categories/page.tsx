@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { repositories } from "@/lib/repositories";
 import { Breadcrumbs } from "@/components/admin/breadcrumbs";
+import { PageHeader } from "@/components/admin/page-header";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import type { Category } from "@/lib/types";
@@ -32,7 +33,10 @@ export default function CategoriesPage() {
   return (
     <div>
       <Breadcrumbs items={[{ label: "Categories" }]} />
-      <h1 className="mb-4 text-2xl font-bold">Category Management</h1>
+      <PageHeader
+        title="Categories"
+        description="Shared product taxonomy used by all partners on your marketplace."
+      />
       {categories && <CategoryTree categories={categories} />}
     </div>
   );

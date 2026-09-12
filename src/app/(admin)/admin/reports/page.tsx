@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { repositories } from "@/lib/repositories";
 import { Breadcrumbs } from "@/components/admin/breadcrumbs";
+import { PageHeader } from "@/components/admin/page-header";
 import { ExportButton } from "@/components/admin/export-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDate } from "@/lib/utils";
@@ -36,7 +37,7 @@ export default function ReportsPage() {
   return (
     <div>
       <Breadcrumbs items={[{ label: "Reports" }]} />
-      <h1 className="mb-4 text-2xl font-bold">Reports & Data Export</h1>
+      <PageHeader title="Reports & Data Export" />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {reports.map((r) => (
           <Card key={r.title}>

@@ -39,7 +39,7 @@ interface MapViewProps {
 }
 
 const markerColors: Record<MapMarker["type"], string> = {
-  store: "#4f46e5",
+  store: "#15803d",
   seller: "#059669",
   partner: "#d97706",
   order: "#dc2626",

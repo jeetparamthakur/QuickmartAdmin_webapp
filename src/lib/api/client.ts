@@ -70,6 +70,7 @@ const ERROR_MAP: Record<string, string> = {
   SESSION_EXPIRED: "Your session has expired. Please log in again.",
   ADMIN_ACCESS_BLOCKED: "Admin access is currently blocked.",
   INVALID_CREDENTIALS: "Invalid email or password.",
+  ACCESS_DENIED: "You do not have permission to access this resource. Try signing out and back in.",
 };
 
 export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
@@ -115,4 +116,63 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
 
   if (response.status === 204) return undefined as T;
   return response.json() as Promise<T>;
+}
+
+export type UploadedFileResponse = {
+  url: string;
+  originalName: string;
+  mimeType: string;
+  size: number;
+  storagePath: string;
+  publicId?: string;
+};
+
+export async function apiUploadFile(
+  path: string,
+  file: File,
+  fields?: Record<string, string>,
+): Promise<UploadedFileResponse> {
+  let token = getStoredToken();
+  const formData = new FormData();
+  formData.append("file", file);
+  if (fields) {
+    Object.entries(fields).forEach(([key, value]) => formData.append(key, value));
+  }
+
+  const doFetch = async (authToken: string | null) =>
+    fetch(buildUrl(path), {
+      method: "POST",
+      headers: {
+        ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+      },
+      body: formData,
+    });
+
+  let response = await doFetch(token);
+  if (response.status === 401 && token) {
+    const newToken = await refreshToken();
+    if (newToken) {
+      token = newToken;
+      response = await doFetch(newToken);
+    } else {
+      clearStoredTokens();
+    }
+  }
+
+  if (!response.ok) {
+    let errorBody: AppError = { message: response.statusText, status: response.status };
+    try {
+      const json = await response.json();
+      errorBody = {
+        message: ERROR_MAP[json.errorCode] ?? json.message ?? response.statusText,
+        status: response.status,
+        code: json.errorCode,
+      };
+    } catch {
+      // default
+    }
+    throw new ApiClientError(errorBody);
+  }
+
+  return response.json() as Promise<UploadedFileResponse>;
 }

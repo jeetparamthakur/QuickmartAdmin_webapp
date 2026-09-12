@@ -21,7 +21,10 @@ const columns: ColumnDef<AdminUser>[] = [
 ];
 
 export default function AdminUsersPage() {
-  const { data: users } = useQuery({ queryKey: ["admin-users"], queryFn: () => repositories.dashboard.getAdminUsers() });
+  const { data: users, isLoading } = useQuery({
+    queryKey: ["admin-users"],
+    queryFn: () => repositories.dashboard.getAdminUsers(),
+  });
   return (
     <div>
       <Breadcrumbs items={[{ label: "Admin Users" }]} />
@@ -29,7 +32,7 @@ export default function AdminUsersPage() {
         <h1 className="text-2xl font-bold">Admin Users</h1>
         <Button asChild variant="outline"><Link href="/admin/admin-users/roles">Roles & Permissions</Link></Button>
       </div>
-      <DataTable columns={columns} data={users ?? []} />
+      <DataTable columns={columns} data={users ?? []} isLoading={isLoading} />
     </div>
   );
 }

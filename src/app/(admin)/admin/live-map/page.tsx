@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { repositories } from "@/lib/repositories";
 import { Breadcrumbs } from "@/components/admin/breadcrumbs";
+import { PageHeader } from "@/components/admin/page-header";
 import { MapView, type MapMarker } from "@/components/admin/map-view";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -39,7 +40,7 @@ export default function LiveMapPage() {
   return (
     <div>
       <Breadcrumbs items={[{ label: "Live Map" }]} />
-      <h1 className="mb-4 text-2xl font-bold">Live Delivery Monitoring</h1>
+      <PageHeader title="Live Delivery Monitoring" />
       <div className="mb-4 flex flex-wrap gap-2">
         <Badge>Online Partners: {(partners?.data ?? []).filter((p) => p.isOnline).length}</Badge>
         <Badge variant="secondary">Offline: {(partners?.data ?? []).filter((p) => !p.isOnline).length}</Badge>

@@ -5,6 +5,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { repositories } from "@/lib/repositories";
 import { Breadcrumbs } from "@/components/admin/breadcrumbs";
+import { PageHeader } from "@/components/admin/page-header";
 import { formatCurrency } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -13,7 +14,7 @@ import {
   LineChart, Line, PieChart, Pie, Cell,
 } from "recharts";
 
-const COLORS = ["#4f46e5", "#059669", "#d97706", "#dc2626", "#0891b2"];
+const COLORS = ["#15803d", "#16a34a", "#d97706", "#dc2626", "#0891b2"];
 
 export default function AnalyticsPage() {
   const { data: stats } = useQuery({ queryKey: ["dashboard-stats"], queryFn: () => repositories.dashboard.getStats() });
@@ -40,7 +41,7 @@ export default function AnalyticsPage() {
   return (
     <div>
       <Breadcrumbs items={[{ label: "Analytics" }]} />
-      <h1 className="mb-4 text-2xl font-bold">Analytics & Drill-Down</h1>
+      <PageHeader title="Analytics & Drill-Down" />
 
       <div className="mb-4 grid gap-3 sm:grid-cols-4">
         {[["Today's GMV", formatCurrency(stats?.todayGMV ?? 0)], ["Today's Orders", stats?.todayOrders ?? 0], ["Total GMV", formatCurrency(stats?.totalGMV ?? 0)], ["Total Orders", stats?.totalOrders ?? 0]].map(([l, v]) => (
@@ -67,7 +68,7 @@ export default function AnalyticsPage() {
                     <XAxis dataKey="name" fontSize={12} />
                     <YAxis fontSize={12} />
                     <Tooltip formatter={(v) => formatCurrency(Number(v))} />
-                    <Bar dataKey="sales" fill="#4f46e5" cursor="pointer" onClick={(d) => setDrillCity(String(d.name))} />
+                    <Bar dataKey="sales" fill="#15803d" cursor="pointer" onClick={(d) => setDrillCity(String(d.name))} />
                   </BarChart>
                 </ResponsiveContainer>
               </CardContent>

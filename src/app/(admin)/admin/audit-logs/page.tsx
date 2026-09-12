@@ -6,6 +6,7 @@ import { repositories } from "@/lib/repositories";
 import type { AuditLog } from "@/lib/types";
 import { DataTable } from "@/components/admin/data-table";
 import { Breadcrumbs } from "@/components/admin/breadcrumbs";
+import { PageHeader } from "@/components/admin/page-header";
 import { formatDateTime } from "@/lib/utils";
 
 const columns: ColumnDef<AuditLog>[] = [
@@ -18,12 +19,20 @@ const columns: ColumnDef<AuditLog>[] = [
 ];
 
 export default function AuditLogsPage() {
-  const { data } = useQuery({ queryKey: ["audit-logs"], queryFn: () => repositories.dashboard.getAuditLogs() });
+  const { data, isLoading } = useQuery({
+    queryKey: ["audit-logs"],
+    queryFn: () => repositories.dashboard.getAuditLogs(),
+  });
   return (
     <div>
       <Breadcrumbs items={[{ label: "Audit Logs" }]} />
-      <h1 className="mb-4 text-2xl font-bold">Audit Logs</h1>
-      <DataTable columns={columns} data={data?.data ?? []} searchPlaceholder="Search audit logs..." />
+      <PageHeader title="Audit Logs" />
+      <DataTable
+        columns={columns}
+        data={data?.data ?? []}
+        isLoading={isLoading}
+        searchPlaceholder="Search audit logs..."
+      />
     </div>
   );
 }

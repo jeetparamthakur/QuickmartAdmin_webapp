@@ -1,147 +1,244 @@
 "use client";
 
+import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
 import { repositories } from "@/lib/repositories";
 import { StatCard, MetricGrid } from "@/components/admin/stat-card";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatTime } from "@/lib/utils";
-import type { PlatformEvent } from "@/lib/types";
-import { mockEventBus } from "@/lib/events/mock-event-bus";
-import { MapView, type MapMarker } from "@/components/admin/map-view";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Activity } from "lucide-react";
+import { PageSection } from "@/components/admin/page-section";
+import {
+  Users,
+  Store,
+  UserRound,
+  Truck,
+  ClipboardList,
+  ShoppingCart,
+  ArrowRight,
+  Settings,
+  Banknote,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+
+const PARTNER_METRICS = [
+  {
+    key: "customers",
+    title: "Customers",
+    description: "Shoppers on your marketplace",
+    href: "/admin/customers",
+    icon: Users,
+    accentClass: "bg-sky-50 text-sky-600 ring-sky-100",
+    getValue: (stats: Awaited<ReturnType<typeof repositories.dashboard.getStats>>) =>
+      stats.totalCustomers,
+  },
+  {
+    key: "storeOwners",
+    title: "Store Owners",
+    description: "Merchants with physical storefronts",
+    href: "/admin/stores",
+    icon: Store,
+    accentClass: "bg-emerald-50 text-emerald-600 ring-emerald-100",
+    getValue: (stats: Awaited<ReturnType<typeof repositories.dashboard.getStats>>) =>
+      stats.totalStores,
+  },
+  {
+    key: "independentSellers",
+    title: "Independent Sellers",
+    description: "Home-based sellers on the platform",
+    href: "/admin/independent-sellers",
+    icon: UserRound,
+    accentClass: "bg-violet-50 text-violet-600 ring-violet-100",
+    getValue: (stats: Awaited<ReturnType<typeof repositories.dashboard.getStats>>) =>
+      stats.totalIndependentSellers,
+  },
+  {
+    key: "deliveryPartners",
+    title: "Delivery Partners",
+    description: "Fleet fulfilling last-mile orders",
+    href: "/admin/delivery-partners",
+    icon: Truck,
+    accentClass: "bg-amber-50 text-amber-600 ring-amber-100",
+    getValue: (stats: Awaited<ReturnType<typeof repositories.dashboard.getStats>>) =>
+      stats.totalDeliveryPartners,
+  },
+] as const;
+
+const QUICK_ACTIONS = [
+  {
+    title: "Review applications",
+    description: "Approve new store owners, sellers, and delivery partners",
+    href: "/admin/requests?status=pending",
+    icon: ClipboardList,
+  },
+  {
+    title: "Manage orders",
+    description: "Track orders across all partners",
+    href: "/admin/orders",
+    icon: ShoppingCart,
+  },
+  {
+    title: "Process payouts",
+    description: "Release earnings to partners",
+    href: "/admin/payouts",
+    icon: Banknote,
+  },
+  {
+    title: "Platform settings",
+    description: "Fees, defaults, and configuration",
+    href: "/admin/settings",
+    icon: Settings,
+  },
+] as const;
 
 export default function DashboardPage() {
-  const { data: stats } = useQuery({ queryKey: ["dashboard-stats"], queryFn: () => repositories.dashboard.getStats() });
-  const { data: events = [], refetch } = useQuery({ queryKey: ["events"], queryFn: () => repositories.dashboard.getEvents() });
-  const { data: stores } = useQuery({ queryKey: ["stores-all"], queryFn: () => repositories.stores.getAll({ pageSize: 100 }) });
-  const { data: cities } = useQuery({ queryKey: ["cities"], queryFn: () => repositories.dashboard.getCities() });
-  const [liveEvents, setLiveEvents] = useState<PlatformEvent[]>([]);
-  const [cityFilter, setCityFilter] = useState("all");
+  const {
+    data: stats,
+    isLoading: statsLoading,
+    isError: statsError,
+  } = useQuery({ queryKey: ["dashboard-stats"], queryFn: () => repositories.dashboard.getStats() });
 
-  useEffect(() => {
-    mockEventBus?.start();
-    const unsub = mockEventBus?.subscribe((event) => {
-      setLiveEvents((prev) => [event, ...prev.slice(0, 19)]);
-      refetch();
-    });
-    return () => {
-      unsub?.();
-      mockEventBus?.stop();
-    };
-  }, [refetch]);
+  const { data: pendingApplications = 0 } = useQuery({
+    queryKey: ["requests-pending-count"],
+    queryFn: async () => {
+      const result = await repositories.requests.getAll({ pageSize: 500 });
+      return result.data.filter(
+        (r) => r.status === "pending" || r.status === "under_review"
+      ).length;
+    },
+  });
 
-  const displayEvents = liveEvents.length > 0 ? liveEvents : events;
-
-  const mapMarkers: MapMarker[] = (stores?.data ?? [])
-    .filter((s) => cityFilter === "all" || s.address.city === cityFilter)
-    .slice(0, 40)
-    .map((s) => ({
-      id: s.id,
-      lat: s.address.lat,
-      lng: s.address.lng,
-      label: s.name,
-      type: "store" as const,
-      popup: (
-        <div className="text-sm">
-          <p className="font-semibold">{s.name}</p>
-          <p>{s.address.city}</p>
-          <p>Orders today: {s.todayOrders}</p>
+  if (statsLoading) return <DashboardSkeleton />;
+  if (statsError || !stats) {
+    return (
+      <div className="space-y-8">
+        <DashboardHeader />
+        <div className="rounded-2xl border border-border/50 bg-card/80 px-6 py-16 text-center shadow-[var(--shadow-sm)]">
+          <p className="text-sm text-muted-foreground">
+            Unable to load dashboard data. Make sure the backend is running and you are logged in.
+          </p>
         </div>
-      ),
-    }));
-
-  const center = cities?.[0] ? { lat: cities[0].lat, lng: cities[0].lng } : { lat: 30.901, lng: 75.8573 };
-
-  if (!stats) return <DashboardSkeleton />;
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Platform Overview</h1>
-        <p className="text-muted-foreground">Real-time command center for your marketplace</p>
-      </div>
+    <div className="space-y-10">
+      <DashboardHeader pendingApplications={pendingApplications} />
 
-      <MetricGrid>
-        <StatCard title="Total Customers" value={stats.totalCustomers} href="/admin/customers" />
-        <StatCard title="Active Customers" value={stats.activeCustomers} href="/admin/customers?status=ACTIVE" />
-        <StatCard title="Total Sellers" value={stats.totalSellers} href="/admin/stores" />
-        <StatCard title="Active Sellers" value={stats.activeSellers} href="/admin/stores?status=ACTIVE" />
-        <StatCard title="Suspended Sellers" value={stats.suspendedSellers} href="/admin/stores?status=SUSPENDED" />
-        <StatCard title="Total Stores" value={stats.totalStores} href="/admin/stores" />
-        <StatCard title="Active Stores" value={stats.activeStores} href="/admin/stores?status=ACTIVE" />
-        <StatCard title="Closed Stores" value={stats.closedStores} href="/admin/stores" />
-        <StatCard title="Independent Sellers" value={stats.totalIndependentSellers} href="/admin/independent-sellers" />
-        <StatCard title="Delivery Partners" value={stats.totalDeliveryPartners} href="/admin/delivery-partners" />
-        <StatCard title="Online Partners" value={stats.onlineDeliveryPartners} href="/admin/delivery-partners?status=online" />
-        <StatCard title="Offline Partners" value={stats.offlineDeliveryPartners} href="/admin/delivery-partners?status=offline" />
-        <StatCard title="Active Partners" value={stats.activeDeliveryPartners} href="/admin/delivery-partners?status=ACTIVE" />
-        <StatCard title="Total Orders" value={stats.totalOrders} href="/admin/orders" />
-        <StatCard title="Today's Orders" value={stats.todayOrders} href="/admin/orders" />
-        <StatCard title="Pending Orders" value={stats.pendingOrders} href="/admin/orders?status=PLACED" />
-        <StatCard title="Completed Orders" value={stats.completedOrders} href="/admin/orders?status=DELIVERED" />
-        <StatCard title="Cancelled Orders" value={stats.cancelledOrders} href="/admin/orders?status=CANCELLED" />
-        <StatCard title="Failed Orders" value={stats.failedOrders} href="/admin/orders?status=FAILED" />
-        <StatCard title="Total GMV" value={stats.totalGMV} format="currency" href="/admin/analytics" />
-        <StatCard title="Today's GMV" value={stats.todayGMV} format="currency" href="/admin/analytics" />
-        <StatCard title="Platform Revenue" value={stats.totalPlatformRevenue} format="currency" href="/admin/finance" />
-        <StatCard title="Today's Revenue" value={stats.todayPlatformRevenue} format="currency" href="/admin/finance" />
-        <StatCard title="Seller Earnings" value={stats.totalSellerEarnings} format="currency" href="/admin/payouts" />
-        <StatCard title="Partner Earnings" value={stats.totalDeliveryPartnerEarnings} format="currency" href="/admin/payouts" />
-      </MetricGrid>
+      <PageSection
+        title="Partner ecosystem"
+        description="Your SaaS tenants — store owners, independent sellers, and delivery partners"
+      >
+        <MetricGrid variant="overview">
+          {PARTNER_METRICS.map((metric) => (
+            <StatCard
+              key={metric.key}
+              title={metric.title}
+              value={metric.getValue(stats)}
+              description={metric.description}
+              href={metric.href}
+              icon={metric.icon}
+              accentClass={metric.accentClass}
+            />
+          ))}
+        </MetricGrid>
+      </PageSection>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Card>
-          <CardHeader className="flex flex-row items-center gap-2">
-            <Activity className="h-5 w-5 text-primary" />
-            <CardTitle className="text-base">Live Platform Activity</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="max-h-80 space-y-3 overflow-y-auto">
-              {displayEvents.map((event) => (
-                <div key={event.id} className="flex gap-3 border-b pb-2 last:border-0">
-                  <span className="shrink-0 text-xs text-muted-foreground">{formatTime(event.timestamp)}</span>
-                  <div>
-                    <p className="text-sm font-medium">{event.message}</p>
-                    {event.entityId && <p className="text-xs text-muted-foreground">{event.entityId}</p>}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+      <PageSection title="Today's pulse" description="What needs attention right now">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <StatCard
+            title="Pending Applications"
+            value={pendingApplications}
+            description="Partners waiting for onboarding review"
+            href="/admin/requests?status=pending"
+            icon={ClipboardList}
+            accentClass="bg-orange-50 text-orange-600 ring-orange-100"
+          />
+          <StatCard
+            title="Today's Orders"
+            value={stats.todayOrders}
+            description="Orders placed across the marketplace today"
+            href="/admin/orders"
+            icon={ShoppingCart}
+            accentClass="bg-blue-50 text-blue-600 ring-blue-100"
+          />
+        </div>
+      </PageSection>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-base">Geographic Overview</CardTitle>
-            <Select value={cityFilter} onValueChange={setCityFilter}>
-              <SelectTrigger className="w-40"><SelectValue placeholder="City" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Cities</SelectItem>
-                {cities?.map((c) => (
-                  <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </CardHeader>
-          <CardContent>
-            <MapView center={center} zoom={11} markers={mapMarkers} height="320px" />
-          </CardContent>
-        </Card>
-      </div>
+      <PageSection title="Quick actions" description="Common tasks for platform admins">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {QUICK_ACTIONS.map((action) => (
+            <Link
+              key={action.href}
+              href={action.href}
+              className={cn(
+                "group flex flex-col rounded-2xl border border-border/40 bg-card/60 p-5 transition-all duration-200",
+                "hover:border-primary/25 hover:bg-card hover:shadow-[var(--shadow-md)]"
+              )}
+            >
+              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/10">
+                <action.icon className="h-4 w-4" />
+              </div>
+              <p className="text-sm font-medium text-foreground">{action.title}</p>
+              <p className="mt-1 flex-1 text-xs leading-relaxed text-muted-foreground">
+                {action.description}
+              </p>
+              <span className="mt-3 flex items-center gap-1 text-xs font-medium text-primary/80 group-hover:text-primary">
+                Open <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+              </span>
+            </Link>
+          ))}
+        </div>
+      </PageSection>
     </div>
+  );
+}
+
+function DashboardHeader({ pendingApplications = 0 }: { pendingApplications?: number }) {
+  const hour = new Date().getHours();
+  const greeting =
+    hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+
+  return (
+    <header className="relative overflow-hidden rounded-2xl border border-border/40 bg-gradient-to-br from-card via-card to-secondary/40 p-6 shadow-[var(--shadow-sm)] sm:p-8">
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-primary/6 blur-3xl" />
+        <div className="absolute -bottom-12 -left-12 h-40 w-40 rounded-full bg-accent/60 blur-3xl" />
+      </div>
+      <div className="relative flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-sm font-medium text-muted-foreground">{greeting}</p>
+          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+            Marketplace overview
+          </h1>
+          <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted-foreground">
+            Manage your multi-tenant SaaS platform — onboard partners, monitor orders, and keep
+            operations running smoothly.
+          </p>
+        </div>
+        {pendingApplications > 0 && (
+          <Link
+            href="/admin/requests?status=pending"
+            className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-orange-200/80 bg-orange-50 px-4 py-2.5 text-sm font-medium text-orange-700 transition-colors hover:bg-orange-100"
+          >
+            <ClipboardList className="h-4 w-4" />
+            {pendingApplications} application{pendingApplications === 1 ? "" : "s"} to review
+          </Link>
+        )}
+      </div>
+    </header>
   );
 }
 
 function DashboardSkeleton() {
   return (
-    <div className="space-y-6">
-      <div className="h-8 w-48 animate-pulse rounded bg-muted" />
-      <div className="grid grid-cols-4 gap-3">
-        {Array.from({ length: 12 }).map((_, i) => (
-          <div key={i} className="h-24 animate-pulse rounded-xl bg-muted" />
-        ))}
+    <div className="space-y-10">
+      <div className="h-36 animate-pulse rounded-2xl bg-muted/60" />
+      <div className="space-y-4">
+        <div className="h-4 w-32 animate-pulse rounded bg-muted/60" />
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="h-40 animate-pulse rounded-2xl bg-muted/60" />
+          ))}
+        </div>
       </div>
     </div>
   );

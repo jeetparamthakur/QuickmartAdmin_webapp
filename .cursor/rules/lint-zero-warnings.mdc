@@ -1,0 +1,19 @@
+---
+description: Enforce zero lint/type errors before builds; fix issues without changing logic
+alwaysApply: true
+---
+
+# Lint and Type Safety
+
+Before finishing any task in this project:
+
+1. Run `npm run check` (ESLint with `--max-warnings 0` + `tsc --noEmit`).
+2. If anything fails, fix all errors and warnings before stopping.
+3. `npm run build` runs `prebuild` automatically — builds fail if lint or types are not clean.
+
+## Fixing rules
+
+- Prefer minimal, behavior-preserving fixes: types, unused imports, eslint-disable only when unavoidable (e.g. TanStack Table).
+- Do not change business logic, API contracts, or UI behavior to silence lint.
+- Use `npm run lint:fix` for auto-fixable issues, then manually fix the rest.
+- Re-run `npm run check` after every fix batch until it passes with 0 errors and 0 warnings.

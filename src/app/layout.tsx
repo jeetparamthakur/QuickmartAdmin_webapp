@@ -14,11 +14,15 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "M3AD Admin Panel",
-  description: "Multi-Vendor Hyperlocal Marketplace Command Center",
+  title: "Quickmart Admin",
+  description: "SaaS marketplace platform — manage store owners, independent sellers, and delivery partners",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">

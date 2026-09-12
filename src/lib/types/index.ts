@@ -42,6 +42,49 @@ export type DeliveryPreference = "STORE_ONLY" | "INDEPENDENT_ONLY" | "BOTH";
 
 export type ProductStatus = "PENDING" | "APPROVED" | "REJECTED" | "DISABLED";
 
+export type PartnerRequestType = "KYC_ONBOARDING" | "DELIVERY_PARTNER";
+
+export type PartnerRequestPartnerType =
+  | "STORE"
+  | "INDEPENDENT_SELLER"
+  | "DELIVERY_PARTNER";
+
+export type PartnerRequestStatus =
+  | "pending"
+  | "under_review"
+  | "approved"
+  | "rejected";
+
+export interface PartnerRequestDocument {
+  id: string;
+  type: string;
+  uri: string;
+  uploadedAt: string;
+}
+
+export interface PartnerRequest {
+  userId: string;
+  requestType: PartnerRequestType;
+  partnerType: PartnerRequestPartnerType;
+  name: string;
+  phone?: string;
+  email?: string;
+  status: PartnerRequestStatus;
+  approvalStatus?: PartnerRequestStatus;
+  onboardingStep?: string;
+  rejectionReason?: string;
+  submittedAt?: string;
+  reviewedAt?: string;
+  createdAt: string;
+  documentCount?: number;
+  documents?: PartnerRequestDocument[];
+  businessDetails?: Record<string, unknown>;
+  storeDetails?: Record<string, unknown>;
+  sellerSetup?: Record<string, unknown>;
+  bankDetails?: Record<string, unknown>;
+  preference?: string;
+}
+
 export type ChargeType = "FIXED" | "PERCENTAGE" | "FORMULA";
 
 export type CommissionScope =
@@ -231,11 +274,18 @@ export interface SubOrder {
   subtotal: number;
 }
 
+export interface OrderChargeLine {
+  code: string;
+  name: string;
+  amount: number;
+}
+
 export interface Order {
   id: string;
   parentOrderId?: string;
   isParent: boolean;
   subOrders?: SubOrder[];
+  chargeBreakdown?: OrderChargeLine[];
   customerId: string;
   customerName: string;
   storeId?: string;
@@ -291,21 +341,24 @@ export interface Cart {
   updatedAt: string;
 }
 
+export interface ChargeRuleConditions {
+  maxCartTotal?: number;
+  minCartValue?: number;
+  minDistanceKm?: number;
+  maxDistanceKm?: number;
+  zoneId?: string;
+}
+
 export interface ChargeRule {
   id: string;
+  code: string;
   name: string;
   type: ChargeType;
   value: number;
-  applicability: string;
-  conditions: string;
-  minCartValue?: number;
-  maxCharge?: number;
-  effectiveFrom: string;
-  effectiveTo?: string;
-  enabled: boolean;
-  visibleInCart: boolean;
-  visibleInCheckout: boolean;
-  visibleInInvoice: boolean;
+  conditions: ChargeRuleConditions;
+  priority: number;
+  isActive: boolean;
+  createdAt: string;
 }
 
 export interface ChargeCondition {
@@ -339,12 +392,18 @@ export interface DeliveryPricing {
 
 export interface CommissionRule {
   id: string;
+  code?: string;
+  name?: string;
   scope: CommissionScope;
-  targetId?: string;
-  targetName?: string;
+  sellerType?: "STORE" | "INDEPENDENT";
+  targetId?: string | null;
+  targetName?: string | null;
+  type?: "PERCENTAGE" | "FIXED";
   rate: number;
   effectiveFrom: string;
-  effectiveTo?: string;
+  effectiveTo?: string | null;
+  priority?: number;
+  isActive?: boolean;
 }
 
 export interface Payout {
@@ -362,19 +421,17 @@ export interface Payout {
   processedAt?: string;
 }
 
+export type BannerPlacement = "HOME_TOP" | "HOME_MIDDLE" | "CATEGORY";
+
 export interface Banner {
   id: string;
   title: string;
-  mobileImageUrl: string;
-  webImageUrl: string;
-  position: string;
-  startDate: string;
-  endDate: string;
-  enabled: boolean;
-  redirectType: "PRODUCT" | "STORE" | "CATEGORY" | "CAMPAIGN";
-  redirectTarget: string;
-  impressions: number;
-  clicks: number;
+  imageUrl: string;
+  linkUrl?: string;
+  placement: BannerPlacement;
+  sortOrder: number;
+  isActive: boolean;
+  createdAt: string;
 }
 
 export interface Advertisement {
@@ -397,18 +454,33 @@ export interface Advertisement {
 export interface Coupon {
   id: string;
   code: string;
-  type: "PERCENTAGE" | "FLAT" | "FREE_DELIVERY" | "FIRST_ORDER";
+  name: string;
+  type: "PERCENTAGE" | "FIXED";
   value: number;
   minCart: number;
   maxDiscount?: number;
   usageLimit: number;
   usedCount: number;
   perCustomerLimit: number;
+  scopeType: "GLOBAL" | "STORE" | "INDEPENDENT_SELLER";
   storeId?: string;
-  categoryId?: string;
-  startDate: string;
-  endDate: string;
+  independentSellerId?: string;
+  fundingSource: "PLATFORM" | "SELLER";
+  startDate?: string;
+  endDate?: string;
   enabled: boolean;
+}
+
+export interface Offer {
+  id: string;
+  title: string;
+  description?: string;
+  imageUrl?: string;
+  discountPercent?: number;
+  linkedCouponCode?: string;
+  startDate?: string;
+  endDate?: string;
+  status: "ACTIVE" | "INACTIVE" | "EXPIRED";
 }
 
 export interface AuditLog {
