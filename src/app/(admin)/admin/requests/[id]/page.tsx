@@ -6,7 +6,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
 import { ExternalLink } from "lucide-react";
 import { repositories } from "@/lib/repositories";
-import { Breadcrumbs } from "@/components/admin/breadcrumbs";
+import { PageHeader } from "@/components/admin/page-header";
 import { DetailTabs } from "@/components/admin/detail-tabs";
 import { StatusBadge } from "@/components/admin/status-badge";
 import { EntityActionDialog } from "@/components/admin/entity-action-dialog";
@@ -187,22 +187,15 @@ export default function RequestDetailPage() {
 
   return (
     <div>
-      <Breadcrumbs
-        items={[
+      <PageHeader
+        breadcrumbItems={[
           { label: "Requests", href: "/admin/requests" },
           { label: request.name },
         ]}
-      />
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold">{request.name}</h1>
-          <div className="mt-1 flex flex-wrap items-center gap-2">
-            <StatusBadge status={request.status} />
-            <span className="text-sm text-muted-foreground">
-              {PARTNER_TYPE_LABELS[request.partnerType] ?? request.partnerType}
-            </span>
-          </div>
-        </div>
+        title={request.name}
+        description={PARTNER_TYPE_LABELS[request.partnerType] ?? request.partnerType}
+        afterTitle={<StatusBadge status={request.status} />}
+      >
         {canReview && (
           <div className="flex gap-2">
             <Button onClick={() => setAction("approve")}>Approve</Button>
@@ -211,7 +204,7 @@ export default function RequestDetailPage() {
             </Button>
           </div>
         )}
-      </div>
+      </PageHeader>
 
       <DetailTabs tabs={tabs} />
 

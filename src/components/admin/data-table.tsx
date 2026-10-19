@@ -75,14 +75,14 @@ export function DataTable<T>({
       </div>
       <Card className="overflow-hidden border-border/40 bg-card/80 p-0 shadow-[var(--shadow-sm)] backdrop-blur-sm">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full text-body-sm">
             <thead>
               {table.getHeaderGroups().map((hg) => (
                 <tr key={hg.id} className="border-b border-border/50 bg-muted/30">
                   {hg.headers.map((header) => (
                     <th
                       key={header.id}
-                      className="cursor-pointer px-4 py-3.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground"
+                      className="cursor-pointer px-4 py-3.5 text-left text-caption font-semibold uppercase tracking-wider text-muted-foreground"
                       onClick={header.column.getToggleSortingHandler()}
                     >
                       {flexRender(header.column.columnDef.header, header.getContext())}

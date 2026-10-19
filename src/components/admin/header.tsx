@@ -35,7 +35,7 @@ export function AdminHeader({ sidebarCollapsed }: HeaderProps) {
   return (
     <header
       className={cn(
-        "sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border/60 bg-card/80 px-4 backdrop-blur-md transition-all duration-300",
+        "sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border/80 bg-card/90 px-4 backdrop-blur-md transition-all duration-300",
         sidebarCollapsed ? "ml-16" : "ml-64"
       )}
     >
@@ -60,8 +60,8 @@ export function AdminHeader({ sidebarCollapsed }: HeaderProps) {
                 {initials}
               </div>
               <div className="hidden md:block">
-                <p className="text-sm font-medium leading-none">{user.name}</p>
-                <Badge variant="secondary" className="mt-0.5 h-4 px-1.5 text-[10px] font-normal">
+                <p className="text-sm font-semibold leading-none">{user.name}</p>
+                <Badge variant="secondary" className="mt-0.5 h-4 px-1.5 text-caption font-medium">
                   {ROLE_LABELS[user.role]}
                 </Badge>
               </div>

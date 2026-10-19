@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
 import { repositories } from "@/lib/repositories";
-import { Breadcrumbs } from "@/components/admin/breadcrumbs";
+import { PageHeader } from "@/components/admin/page-header";
 import { DetailTabs } from "@/components/admin/detail-tabs";
 import { StatusBadge } from "@/components/admin/status-badge";
 import { FoodSetupPanel } from "@/components/admin/food-setup-panel";
@@ -157,18 +157,14 @@ export default function RestaurantDetailPage() {
 
   return (
     <div>
-      <Breadcrumbs
-        items={[
+      <PageHeader
+        breadcrumbItems={[
           { label: "Restaurants", href: "/admin/restaurants" },
           { label: restaurant.name },
         ]}
+        title={restaurant.name}
+        afterTitle={<StatusBadge status={restaurant.status} />}
       />
-      <div className="mb-4 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">{restaurant.name}</h1>
-          <StatusBadge status={restaurant.status} />
-        </div>
-      </div>
       <DetailTabs tabs={tabs} />
       <EntityActionDialog
         open={!!action}

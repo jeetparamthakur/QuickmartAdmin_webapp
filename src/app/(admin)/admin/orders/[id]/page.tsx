@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
 import { repositories } from "@/lib/repositories";
-import { Breadcrumbs } from "@/components/admin/breadcrumbs";
+import { PageHeader } from "@/components/admin/page-header";
 import { OrderItemsTable } from "@/components/admin/order-items-table";
 import { StatusBadge } from "@/components/admin/status-badge";
 import { formatCurrency, formatDateTime } from "@/lib/utils";
@@ -61,18 +61,21 @@ export default function OrderDetailPage() {
 
   return (
     <div className="space-y-6">
-      <Breadcrumbs items={[{ label: "Orders", href: "/admin/orders" }, { label: order.id }]} />
-
-      <div className="flex flex-wrap items-center gap-3">
-        <h1 className="text-2xl font-bold">{order.id}</h1>
-        <StatusBadge status={order.status} />
-        <StatusBadge status={order.paymentStatus} />
-        {order.isParent && (
-          <span className="rounded-md bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
-            Parent Order
-          </span>
-        )}
-      </div>
+      <PageHeader
+        breadcrumbItems={[{ label: "Orders", href: "/admin/orders" }, { label: order.id }]}
+        title={order.id}
+        afterTitle={
+          <>
+            <StatusBadge status={order.status} />
+            <StatusBadge status={order.paymentStatus} />
+            {order.isParent && (
+              <span className="rounded-md bg-primary/10 px-2 py-0.5 text-caption font-medium text-primary">
+                Parent Order
+              </span>
+            )}
+          </>
+        }
+      />
 
       <div className="flex flex-wrap gap-1">
         {ORDER_FLOW.map((step, i) => (

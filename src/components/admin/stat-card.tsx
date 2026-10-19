@@ -39,8 +39,8 @@ export function StatCard({
       <CardContent className="p-5 sm:p-6">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{title}</p>
-            <p className="mt-2 text-3xl font-semibold tracking-tight text-foreground">{display}</p>
+            <p className="text-caption font-medium uppercase tracking-wide text-muted-foreground">{title}</p>
+            <p className="mt-2 text-3xl font-bold tracking-tight text-foreground">{display}</p>
             {description && (
               <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{description}</p>
             )}

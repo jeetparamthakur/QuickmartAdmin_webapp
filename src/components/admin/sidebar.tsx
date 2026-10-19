@@ -5,8 +5,9 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { adminNavGroups } from "@/lib/admin/navigation";
 import { useAuth } from "@/lib/auth/context";
-import { ChevronLeft, ChevronRight, Zap } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { BrandMark } from "@/components/admin/brand-mark";
 
 interface SidebarProps {
   collapsed: boolean;
@@ -32,13 +33,11 @@ export function AdminSidebar({ collapsed, onToggle }: SidebarProps) {
       )}
     >
       <div className="flex h-14 items-center gap-3 border-b border-sidebar-border/80 px-4">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 ring-1 ring-primary/15">
-          <Zap className="h-4 w-4 text-primary" />
-        </div>
+        <BrandMark size="md" />
         {!collapsed && (
           <div className="min-w-0 overflow-hidden">
             <p className="truncate text-sm font-semibold tracking-tight">Quickmart</p>
-            <p className="truncate text-[11px] text-muted-foreground">SaaS Admin Console</p>
+            <p className="truncate text-caption text-muted-foreground">SaaS Admin Console</p>
           </div>
         )}
       </div>
@@ -48,11 +47,11 @@ export function AdminSidebar({ collapsed, onToggle }: SidebarProps) {
           <div key={group.label} className="mb-4 last:mb-0">
             {!collapsed && (
               <div className="mb-1.5 px-3">
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70">
+                <p className="text-caption font-medium uppercase tracking-wider text-muted-foreground">
                   {group.label}
                 </p>
                 {group.hint && (
-                  <p className="mt-0.5 text-[10px] leading-snug text-muted-foreground/50">{group.hint}</p>
+                  <p className="mt-0.5 text-caption leading-snug text-muted-foreground/80">{group.hint}</p>
                 )}
               </div>
             )}
@@ -69,7 +68,7 @@ export function AdminSidebar({ collapsed, onToggle }: SidebarProps) {
                     "mb-0.5 flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-all duration-150",
                     active
                       ? "bg-primary/10 text-primary shadow-[var(--shadow-sm)]"
-                      : "text-muted-foreground hover:bg-sidebar-muted hover:text-foreground"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
                   )}
                   title={collapsed ? item.title : undefined}
                 >

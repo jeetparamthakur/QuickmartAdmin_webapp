@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { repositories } from "@/lib/repositories";
-import { Breadcrumbs } from "@/components/admin/breadcrumbs";
+import { PageHeader } from "@/components/admin/page-header";
 import { ROLE_LABELS } from "@/lib/permissions/matrix";
 import { StatusBadge } from "@/components/admin/status-badge";
 import { formatDateTime } from "@/lib/utils";
@@ -27,11 +27,15 @@ export default function AdminUsersPage() {
   });
   return (
     <div>
-      <Breadcrumbs items={[{ label: "Admin Users" }]} />
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Admin Users</h1>
-        <Button asChild variant="outline"><Link href="/admin/admin-users/roles">Roles & Permissions</Link></Button>
-      </div>
+      <PageHeader
+        breadcrumbItems={[{ label: "Admin Users" }]}
+        title="Admin Users"
+        description="Manage platform administrators and access"
+      >
+        <Button asChild variant="outline">
+          <Link href="/admin/admin-users/roles">Roles & Permissions</Link>
+        </Button>
+      </PageHeader>
       <DataTable columns={columns} data={users ?? []} isLoading={isLoading} />
     </div>
   );

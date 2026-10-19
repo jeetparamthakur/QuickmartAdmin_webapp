@@ -156,6 +156,13 @@ export const adminNavGroups: NavGroup[] = [
         permission: "charges.manage",
         description: "Handling fees and platform charges at checkout",
       },
+      {
+        title: "Partner Pay",
+        href: "/admin/delivery-partner-pay",
+        icon: Truck,
+        permission: "delivery.view",
+        description: "Per-order delivery partner earnings by distance",
+      },
     ],
   },
   {

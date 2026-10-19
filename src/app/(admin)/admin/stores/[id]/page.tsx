@@ -3,7 +3,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
 import { repositories } from "@/lib/repositories";
-import { Breadcrumbs } from "@/components/admin/breadcrumbs";
+import { PageHeader } from "@/components/admin/page-header";
 import { DetailTabs } from "@/components/admin/detail-tabs";
 import { StatusBadge } from "@/components/admin/status-badge";
 import { FeatureToggleGrid } from "@/components/admin/rule-builder";
@@ -118,13 +118,11 @@ export default function StoreDetailPage() {
 
   return (
     <div>
-      <Breadcrumbs items={[{ label: "Stores", href: "/admin/stores" }, { label: store.name }]} />
-      <div className="mb-4 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">{store.name}</h1>
-          <StatusBadge status={store.status} />
-        </div>
-      </div>
+      <PageHeader
+        breadcrumbItems={[{ label: "Stores", href: "/admin/stores" }, { label: store.name }]}
+        title={store.name}
+        afterTitle={<StatusBadge status={store.status} />}
+      />
       <DetailTabs tabs={tabs} />
       <EntityActionDialog
         open={!!action}

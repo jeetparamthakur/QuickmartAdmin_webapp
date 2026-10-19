@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
 import { repositories } from "@/lib/repositories";
-import { Breadcrumbs } from "@/components/admin/breadcrumbs";
+import { PageHeader } from "@/components/admin/page-header";
 import { DetailTabs } from "@/components/admin/detail-tabs";
 import { StatusBadge } from "@/components/admin/status-badge";
 import { formatCurrency, formatDate } from "@/lib/utils";
@@ -41,10 +41,15 @@ export default function SellerDetailPage() {
 
   return (
     <div>
-      <Breadcrumbs items={[{ label: "Independent Sellers", href: "/admin/independent-sellers" }, { label: seller.businessName }]} />
-      <h1 className="mb-2 text-2xl font-bold">{seller.businessName}</h1>
-      <StatusBadge status={seller.status} />
-      <div className="mt-4"><DetailTabs tabs={tabs} /></div>
+      <PageHeader
+        breadcrumbItems={[
+          { label: "Independent Sellers", href: "/admin/independent-sellers" },
+          { label: seller.businessName },
+        ]}
+        title={seller.businessName}
+        afterTitle={<StatusBadge status={seller.status} />}
+      />
+      <DetailTabs tabs={tabs} />
     </div>
   );
 }

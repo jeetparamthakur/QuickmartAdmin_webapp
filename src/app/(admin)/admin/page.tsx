@@ -217,7 +217,7 @@ function DashboardHeader({ pendingApplications = 0 }: { pendingApplications?: nu
       <div className="relative flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-sm font-medium text-muted-foreground">{greeting}</p>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+          <h1 className="mt-1 text-h1 text-foreground sm:text-[2rem] sm:leading-[2.375rem]">
             Marketplace overview
           </h1>
           <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted-foreground">

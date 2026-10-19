@@ -16,25 +16,25 @@ export function OrderItemsTable({ items, productsById }: OrderItemsTableProps) {
 
   return (
     <div className="overflow-x-auto rounded-lg border border-border/60">
-      <table className="w-full text-sm">
+      <table className="w-full text-body-sm">
         <thead>
           <tr className="border-b bg-muted/40">
-            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <th className="px-4 py-3 text-left text-caption font-semibold uppercase tracking-wide text-muted-foreground">
               Product
             </th>
-            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <th className="px-4 py-3 text-left text-caption font-semibold uppercase tracking-wide text-muted-foreground">
               SKU
             </th>
-            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <th className="px-4 py-3 text-left text-caption font-semibold uppercase tracking-wide text-muted-foreground">
               Category
             </th>
-            <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <th className="px-4 py-3 text-right text-caption font-semibold uppercase tracking-wide text-muted-foreground">
               Qty
             </th>
-            <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <th className="px-4 py-3 text-right text-caption font-semibold uppercase tracking-wide text-muted-foreground">
               Unit Price
             </th>
-            <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <th className="px-4 py-3 text-right text-caption font-semibold uppercase tracking-wide text-muted-foreground">
               Line Total
             </th>
           </tr>

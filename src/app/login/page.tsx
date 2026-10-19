@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Zap,
   Mail,
   Lock,
   Eye,
@@ -19,6 +18,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { BrandMark } from "@/components/admin/brand-mark";
 
 const FEATURES = [
   {
@@ -80,7 +80,7 @@ export default function LoginPage() {
     <div className="flex min-h-screen">
       {/* Brand panel */}
       <aside
-        className="relative hidden w-[44%] flex-col justify-between overflow-hidden bg-gradient-to-br from-primary via-primary to-[#0f5c2e] p-10 text-primary-foreground lg:flex xl:p-14"
+        className="relative hidden w-[44%] flex-col justify-between overflow-hidden bg-gradient-to-br from-primary via-primary to-[#0F5C28] p-10 text-primary-foreground lg:flex xl:p-14"
         aria-hidden="true"
       >
         <div className="pointer-events-none absolute inset-0">
@@ -98,9 +98,7 @@ export default function LoginPage() {
 
         <div className="relative z-10">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/15 backdrop-blur-sm ring-1 ring-white/20">
-              <Zap className="h-5 w-5" />
-            </div>
+            <BrandMark size="lg" className="bg-white/95 ring-white/30" />
             <div>
               <p className="text-sm font-medium text-white/80">Quickmart</p>
               <p className="text-lg font-semibold tracking-tight">SaaS Admin Console</p>
@@ -149,9 +147,7 @@ export default function LoginPage() {
         <div className="relative w-full max-w-[420px]">
           {/* Mobile logo */}
           <div className="mb-8 flex items-center justify-center gap-3 lg:hidden">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 text-primary ring-1 ring-primary/15">
-              <Zap className="h-5 w-5" />
-            </div>
+            <BrandMark size="lg" />
             <div>
               <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                 Quickmart Admin

@@ -89,4 +89,25 @@ export const adminApi = {
     apiRequest(`/admin/charges/${id}`, { method: "PATCH", body }),
   deleteCharge: (id: string) =>
     apiRequest(`/admin/charges/${id}`, { method: "DELETE" }),
+  deliveryPartnerPaySlabs: (partnerProfileId?: string) =>
+    apiRequest<
+      Array<{
+        id: string;
+        partnerProfileId: string | null;
+        zoneId: string | null;
+        minKm: number;
+        maxKm: number;
+        fee: number;
+        isActive: boolean;
+        createdAt: string;
+      }>
+    >("/admin/delivery-partner-pay/slabs", {
+      params: partnerProfileId ? { partnerProfileId } : undefined,
+    }),
+  createDeliveryPartnerPaySlab: (body: Record<string, unknown>) =>
+    apiRequest("/admin/delivery-partner-pay/slabs", { method: "POST", body }),
+  updateDeliveryPartnerPaySlab: (id: string, body: Record<string, unknown>) =>
+    apiRequest(`/admin/delivery-partner-pay/slabs/${id}`, { method: "PATCH", body }),
+  deleteDeliveryPartnerPaySlab: (id: string) =>
+    apiRequest(`/admin/delivery-partner-pay/slabs/${id}`, { method: "DELETE" }),
 };
